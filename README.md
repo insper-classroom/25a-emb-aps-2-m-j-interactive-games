@@ -21,7 +21,7 @@ O controle foi especialmente desenvolvido para **Power Rangers - The Movie**. Al
 ### Saídas (Outputs)
 - **LEDs Indicadores:** Exibem o status da conexão com o emulador e sinalizam quando o controle está pronto para uso.
 - **Motor de Vibração:** Fornece feedback tátil durante a jogabilidade e, ao ser ativado, dispara a transformação do Power Ranger.
-- **Display (opcional):** Pode ser utilizado para exibir informações rápidas, como o estado do controle ou notificações do jogo.
+- **Display:** Pode ser utilizado para exibir informações rápidas, como o estado do controle ou notificações do jogo.
 
 ## Protocolo Utilizado
 
@@ -47,52 +47,17 @@ flowchart TB
     C --> INPUT_TASK
     D --> INPUT_TASK
 
-    subgraph RTOS Tasks
+    subgraph RTOS_Tasks
     INPUT_TASK -->|xQueueAction| BT_TASK
     BT_TASK -->|xQueueFeedback| BUZZ_TASK
     BT_TASK -->|xSemaphoreBT| LED_TASK
     end
 
     style Callbacks fill:#EFEFEF,stroke:#999,stroke-width:1px
-    style RTOS Tasks fill:#EFEFEF,stroke:#999,stroke-width:1px
+    style RTOS_Tasks fill:#EFEFEF,stroke:#999,stroke-width:1px
 
     classDef task fill:#CCE5FF,stroke:#2F5597,stroke-width:1px
     classDef callback fill:#FFF2CC,stroke:#D6B656,stroke-width:1px
 
     class A,B,C,D callback
     class INPUT_TASK,BT_TASK,BUZZ_TASK,LED_TASK task
-
----
-
-#### Principais Componentes do RTOS
-
-- **Tasks:**
-  - Leitura dos sensores (entradas analógicas e digitais)
-  - Comunicação via Bluetooth com o emulador
-  - Controle do motor de vibração (feedback tátil e ativação da transformação)
-  - Atualização dos LEDs indicadores
-
-- **Filas:**
-  - Fila de eventos de entrada
-  - Fila de comandos para o jogo
-  - Fila de eventos para feedback
-
-- **Semáforos:**
-  - Controle do estado da conexão Bluetooth
-
-- **Interrupts:**
-  - Callbacks configurados para os botões e sensores, assegurando resposta imediata às interações
-
-## Imagens do Controle
-
-### Proposta Inicial
-
----
-
-![Proposta](proposta.png)
-
----
-
-## Considerações Finais
-
-Este projeto integra os requisitos fundamentais de um controle customizado para jogos com uma funcionalidade diferenciada: a transformação do Power Ranger, acionada pelo motor de vibração. A solução desenvolvida combina tecnologias modernas e técnicas de computação embarcada, proporcionando uma experiência única e imersiva no **Power Rangers - The Movie**.
