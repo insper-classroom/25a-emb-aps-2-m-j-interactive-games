@@ -39,7 +39,7 @@ flowchart TB
     A[btn_note_callback]
     B[strumbar_callback]
     C[whammy_callback]
-    D[imu_callback]
+    D[adc_callback]
     end
 
     A --> INPUT_TASK
@@ -88,7 +88,7 @@ flowchart TB
 
 ---
 
-![Proposta](proposta.png)
+![Proposta](Captura de tela 2025-03-24 173158.png)
 
 ---
 
