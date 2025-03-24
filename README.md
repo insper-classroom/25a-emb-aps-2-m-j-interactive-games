@@ -88,7 +88,7 @@ flowchart TB
 
 ---
 
-![Proposta](Captura de tela 2025-03-24 173158.png)
+![Proposta](controle.png)
 
 ---
 
