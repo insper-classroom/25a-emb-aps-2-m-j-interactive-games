@@ -61,6 +61,7 @@ flowchart TB
 
     class A,B,C,D callback
     class INPUT_TASK,BT_TASK,BUZZ_TASK,LED_TASK task
+```
 
 #### Principais Componentes do RTOS
 
