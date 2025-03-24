@@ -14,7 +14,7 @@ O controle foi especialmente desenvolvido para **Power Rangers - The Movie**. Al
 
 ### Entradas (Inputs)
 - **Botão de Liga/Desliga:** Liga e desliga o controle.
-- **2 Entradas Analógicas ou 1 IMU:** Detecta movimentos e ângulos, permitindo manobras especiais e controle preciso.
+- **2 Entradas Analógicas:** Detecta movimentos e ângulos, permitindo manobras especiais e controle preciso.
 - **4 Entradas Digitais:** Botões destinados a ações do jogo, como ataque, defesa, pulo e ação especial.
 - *Todas as entradas operam via callbacks e interrupções para garantir resposta imediata e sem latência.*
 
@@ -33,9 +33,34 @@ O controle foi especialmente desenvolvido para **Power Rangers - The Movie**. Al
 
 ### Estrutura Geral
 
----
+```mermaid
+flowchart TB
+    subgraph Callbacks
+    A[btn_note_callback]
+    B[strumbar_callback]
+    C[whammy_callback]
+    D[imu_callback]
+    end
 
-![Diagrama de Blocos](diagrama.jpg)
+    A --> INPUT_TASK
+    B --> INPUT_TASK
+    C --> INPUT_TASK
+    D --> INPUT_TASK
+
+    subgraph RTOS Tasks
+    INPUT_TASK -->|xQueueAction| BT_TASK
+    BT_TASK -->|xQueueFeedback| BUZZ_TASK
+    BT_TASK -->|xSemaphoreBT| LED_TASK
+    end
+
+    style Callbacks fill:#EFEFEF,stroke:#999,stroke-width:1px
+    style RTOS Tasks fill:#EFEFEF,stroke:#999,stroke-width:1px
+
+    classDef task fill:#CCE5FF,stroke:#2F5597,stroke-width:1px
+    classDef callback fill:#FFF2CC,stroke:#D6B656,stroke-width:1px
+
+    class A,B,C,D callback
+    class INPUT_TASK,BT_TASK,BUZZ_TASK,LED_TASK task
 
 ---
 
@@ -65,14 +90,6 @@ O controle foi especialmente desenvolvido para **Power Rangers - The Movie**. Al
 ---
 
 ![Proposta](proposta.png)
-
----
-
-### Protótipo Real
-
----
-
-![Protótipo](prototipo.png)
 
 ---
 
