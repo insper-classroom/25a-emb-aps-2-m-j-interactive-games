@@ -61,3 +61,36 @@ flowchart TB
 
     class A,B,C,D callback
     class INPUT_TASK,BT_TASK,BUZZ_TASK,LED_TASK task
+
+#### Principais Componentes do RTOS
+
+- **Tasks:**
+  - Leitura dos sensores (entradas analógicas e digitais)
+  - Comunicação via Bluetooth com o emulador
+  - Controle do motor de vibração (feedback tátil e ativação da transformação)
+  - Atualização dos LEDs indicadores
+
+- **Filas:**
+  - Fila de eventos de entrada
+  - Fila de comandos para o jogo
+  - Fila de eventos para feedback
+
+- **Semáforos:**
+  - Controle do estado da conexão Bluetooth
+
+- **Interrupts:**
+  - Callbacks configurados para os botões e sensores, assegurando resposta imediata às interações
+
+## Imagens do Controle
+
+### Proposta Inicial
+
+---
+
+![Proposta](proposta.png)
+
+---
+
+## Considerações Finais
+
+Este projeto integra os requisitos fundamentais de um controle customizado para jogos com uma funcionalidade diferenciada: a transformação do Power Ranger, acionada pelo motor de vibração. A solução desenvolvida combina tecnologias modernas e técnicas de computação embarcada, proporcionando uma experiência única e imersiva no **Power Rangers - The Movie**.
