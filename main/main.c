@@ -12,7 +12,7 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include "hardware/adc.h"
-
+#include "munition.h"
 
 const int PIN_ADC_2 = 28;
 
@@ -64,11 +64,32 @@ void fire_task(void *p) {
     }
 }
 
+void munition_task(void *p){
+    int shot_data;
+    int munition_counter = 10;
+    while (1) {
+        if (xQueueReceive(xQueueFire, &shot_data, portMAX_DELAY)) {
+            if(shot_data == 1){
+                munition_counter --;
+            }
+            if(munition_counter == 0){
+                munition_counter = 10;
+            }
+            munition_show(munition_counter);
+            
+            
+        }
+    }
+
+}
+
 int main() {
     stdio_init_all();
     adc_init();
     xQueueFire = xQueueCreate(32, sizeof(int));
     xTaskCreate(fire_task, "Fire task", 4095, NULL, 1, NULL);
+    xTaskCreate(munition_task, "Munition task", 4095, NULL, 1, NULL);
+
     vTaskStartScheduler();
 
     while (true) {
