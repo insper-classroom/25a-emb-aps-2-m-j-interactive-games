@@ -50,7 +50,7 @@ void fire_task(void *p) {
             
             voltage_counter = 0;
         }
-        if(average_voltage >= 1.30){
+        if(average_voltage >= 0.80){
             fire_data = 1;
         }
         else{

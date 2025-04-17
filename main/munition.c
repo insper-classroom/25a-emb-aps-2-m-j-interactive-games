@@ -57,18 +57,8 @@ void munition_show(int show_number){
         sleep_ms(2);                        // tempo de setup
         gpio_put(INH_4051, 0);               // habilita 4051
         sleep_ms(2);                        // tempo de estabilização
-        printf("Canal %d: %d\n", channel, gpio_get(27));
+        printf("Canal %d: %d\n", channel, gpio_get(PIN_LEDS_ON));
     }
-    for (uint channel = show_number; channel < 8; channel++) {
-        gpio_put(PIN_LEDS_ON,0);
-        // gpio_put(INH_4051, 1);               // desabilita 4051
-        select_4051_channel(channel);       // muda canal
-        sleep_ms(2);                        // tempo de setup
-        gpio_put(INH_4051, 0);               // habilita 4051
-        sleep_ms(2);                        // tempo de estabilização
-        printf("Canal %d: %d\n", channel, gpio_get(27));
-    }
-
     printf("--------------------\n");
     sleep_ms(1000);
     
