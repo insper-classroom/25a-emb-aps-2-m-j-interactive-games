@@ -63,6 +63,7 @@ void fire_task(void *p) {
     // uint16_t result;
     // float voltage_list[]= {0,0,0,0,0};
     // int voltage_counter = 0;
+    int shot = 0;
     while (1) {
         // adc_select_input(3); // Select ADC input 2 (GPIO28)
         // result = adc_read();
@@ -84,8 +85,13 @@ void fire_task(void *p) {
         // }
         
         if(fire){
-            xQueueSend(xQueueFire, &fire, 0);
+            shot = 1;
+            xQueueSend(xQueueFire, &shot, 0);
             fire =0;
+        }
+        else{
+            shot = 0;
+            xQueueSend(xQueueFire, &shot, 0);
         }
 
         vTaskDelay(pdMS_TO_TICKS(200));
@@ -94,22 +100,19 @@ void fire_task(void *p) {
 
 void munition_task(void *p){
     int shot_data;
-    int munition_counter = 8;
-    munition_show(munition_counter);
+    int munition_counter = 6;
     while (1) {
         if (xQueueReceive(xQueueFire, &shot_data, portMAX_DELAY)) {
-            printf("CHEGOU");
             if(shot_data == 1){
                 munition_counter --;
                 printf("munition: %d \n",munition_counter);
                 if(munition_counter == 0){
-                    munition_counter = 8;
+                    munition_counter = 6;
                 }
             }
             
+            munition_show(munition_counter);
         }
-        munition_show(munition_counter);
-        vTaskDelay(pdMS_TO_TICKS(0.01));
 
 
     }
