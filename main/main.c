@@ -97,14 +97,14 @@ void fire_task(void *p) {
 
 void munition_task(void *p){
     int shot_data;
-    int munition_counter = 6;
+    int munition_counter = 8;
     while (1) {
         if (xQueueReceive(xQueueFire, &shot_data, portMAX_DELAY)) {
             if(shot_data == 1){
                 munition_counter --;
                 printf("munition: %d \n",munition_counter);
                 if(munition_counter == 0){
-                    munition_counter = 6;
+                    munition_counter = 8;
                 }
             }
             
