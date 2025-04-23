@@ -253,10 +253,11 @@ void send_uart_packet(uint8_t axis, int32_t valor) {
     bytes[1] = (valor >> 8) & 0xFF;
     bytes[2] = valor & 0xFF;
     bytes[3] = 0xFF;
-    uart_puts(HC06_UART_ID, "OLAAA ");
+    // uart_puts(HC06_UART_ID, "OLAAA ");
 
-    // uart_write_blocking(HC06_UART_ID, bytes, 4);
+    uart_write_blocking(HC06_UART_ID, bytes, 4);
 }
+
 void uart_task(void *p) {
 
     data pin_data;
@@ -267,9 +268,6 @@ void uart_task(void *p) {
     gpio_set_function(HC06_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
     hc06_init("desert_eagle ", "FIRE");
-    // uart_init( UART_ID, BAUD_RATE);
-    // gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
-    // gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
     while (1) {
         if (xQueueReceive(xQueuePos, &pin_data, portMAX_DELAY)) {
 

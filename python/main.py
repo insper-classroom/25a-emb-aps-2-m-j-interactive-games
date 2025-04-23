@@ -153,7 +153,7 @@ def criar_janela():
     footer_frame.pack(side="bottom", fill="x", padx=10, pady=(10, 0))
 
     # Left: Status label
-    status_label = tk.Label(footer_frame, text="Aguardando seleção de porta...", font=("Segoe UI", 11),
+    status_label = tk.Label(footer_frame, text="Porta", font=("Segoe UI", 11),
                             bg=dark_bg, fg=dark_fg)
     status_label.grid(row=0, column=0, sticky="w")
 
@@ -162,7 +162,7 @@ def criar_janela():
     if portas_disponiveis:
         porta_var.set(portas_disponiveis[0])
     port_dropdown = ttk.Combobox(footer_frame, textvariable=porta_var,
-                                 values=portas_disponiveis, state="readonly", width=10)
+                                 values=portas_disponiveis, state="readonly", width=60)
     port_dropdown.grid(row=0, column=1, padx=10)
 
     # Right: Status circle (canvas)
