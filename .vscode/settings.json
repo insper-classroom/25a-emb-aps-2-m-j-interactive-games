@@ -40,6 +40,10 @@
         "stdio.h": "c",
         "bullets.h": "c",
         "adc.h": "c",
-        "munition.h": "c"
+        "munition.h": "c",
+        "gpio.h": "c",
+        "i2c.h": "c",
+        "fusion.h": "c",
+        "mpu6050.h": "c"
     }
 }
