@@ -17,6 +17,7 @@
 #include "hardware/adc.h"
 #include "munition.h"
 #include <inttypes.h>
+#include "hc06.h"
 
 const int PIN_ADC_2 = 28;
 const int PIN_BTN = 2;
@@ -117,8 +118,8 @@ void munition_task(void *p){
 #define SAMPLE_PERIOD (0.01f) // replace this with actual sample period
 
 const int MPU_ADDRESS = 0x68;
-const int I2C_SDA_GPIO = 4;
-const int I2C_SCL_GPIO = 5;
+const int I2C_SCL_GPIO = 21;
+const int I2C_SDA_GPIO = 20;
 QueueHandle_t xQueuePos;
 static void mpu6050_reset() {
     // Two byte reset. First byte register, second byte data
@@ -252,7 +253,9 @@ void send_uart_packet(uint8_t axis, int32_t valor) {
     bytes[1] = (valor >> 8) & 0xFF;
     bytes[2] = valor & 0xFF;
     bytes[3] = 0xFF;
-    uart_write_blocking(UART_ID, bytes, 4);
+    uart_puts(HC06_UART_ID, "OLAAA ");
+
+    // uart_write_blocking(HC06_UART_ID, bytes, 4);
 }
 void uart_task(void *p) {
 
@@ -260,9 +263,13 @@ void uart_task(void *p) {
     int32_t last_pitch_sent = 0;
     int32_t last_yaw_sent = 0;
     int32_t variation = 0;
-    uart_init( UART_ID, BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
-    gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
+    uart_init(HC06_UART_ID, HC06_BAUD_RATE);
+    gpio_set_function(HC06_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
+    hc06_init("desert_eagle ", "FIRE");
+    // uart_init( UART_ID, BAUD_RATE);
+    // gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
+    // gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
     while (1) {
         if (xQueueReceive(xQueuePos, &pin_data, portMAX_DELAY)) {
 
