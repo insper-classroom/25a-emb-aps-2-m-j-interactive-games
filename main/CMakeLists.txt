@@ -1,6 +1,5 @@
 add_executable(pico_emb
         main.c
-        munition.c
         hc06.c
 
 
