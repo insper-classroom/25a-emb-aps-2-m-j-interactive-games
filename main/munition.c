@@ -49,8 +49,6 @@ void munition_show(int show_number){
         sleep_ms(2);                        // tempo de estabilização
         printf("Canal %d: %d\n", channel, gpio_get(PIN_LEDS_ON));
     }
-    printf("--------------------\n");
-    sleep_ms(1000);
-    
+    printf("--------------------\n");    
 
 }

@@ -39,7 +39,7 @@ volatile int fire = 0;
 
 void gpio_callback(uint gpio, uint32_t events)
 {
-    if (gpio_get(PIN_BTN) == 1){
+    if (gpio_get(PIN_BTN) == 0){
         fire = 0;
     }
     else{
@@ -64,18 +64,12 @@ void fire_task(void *p) {
     adc_gpio_init(PIN_ADC_2);
     gpio_init(PIN_VIB);
     gpio_set_dir(PIN_VIB, GPIO_OUT);
-
-    // 12-bit conversion, assume max value == ADC_VREF == 5 V
-    // const float conversion_factor = 5.0f / (1 << 12) ;
-
-    // uint16_t result;
-    // float voltage_list[]= {0,0,0,0,0};
-    // int voltage_counter = 0;
     int shot = 0;
 
     while (1) {
         
         if(fire){
+            send_uart_packet(2,1);
             printf("FOi");
             shot = 1;
             xQueueSend(xQueueFire, &shot, 0);
@@ -268,11 +262,14 @@ void uart_task(void *p) {
     gpio_set_function(HC06_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
     hc06_init("desert_eagle ", "FIRE");
+    int shot_data;
+
     while (1) {
         if (xQueueReceive(xQueuePos, &pin_data, portMAX_DELAY)) {
 
             int axis_z = 1;  // Roll
             int axis_y = 0;  // pitch
+            int fire =2;
 
             // Roll
             if (pin_data.euler.angle.roll != 0) {
@@ -292,6 +289,7 @@ void uart_task(void *p) {
                 }
             }
         }
+
     }
 }
 int main() {

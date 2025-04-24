@@ -14,6 +14,8 @@ def move_mouse(axis, value):
         pyautogui.moveRel(value, 0)
     elif axis == 1:
         pyautogui.moveRel(0, value)
+    elif axis == 2:
+        pyautogui.leftClick()
 
 def controle(ser):
     """
