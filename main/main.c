@@ -94,7 +94,7 @@ void recharge_task(void *p){
             voltage_counter = 0;
         }
 
-        if(average_voltage >= 0.80){
+        if(average_voltage >= 1.80){
             voltage_list[0]= 0;
             voltage_list[1]= 0;
             voltage_list[2]= 0;
