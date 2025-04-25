@@ -18,35 +18,27 @@
 #include <inttypes.h>
 #include "hc06.h"
 
-const int PIN_ADC_2 = 28;
 const int PIN_BTN = 2;
 const int PIN_VIB = 17;
 
 
-QueueHandle_t xQueueFire;
 
 float moving_average(float *list_data) {
     float soma = 0;
     for (int i = 0; i < 5; i++) {
         soma += list_data[i];
     }
-    printf("voltage at spectrasymbol: %f [V]\n", soma/5);
-
     return soma / 5;
 }
-volatile int fire = 0;
+SemaphoreHandle_t xSemaphoreFire;
 
 void gpio_callback(uint gpio, uint32_t events)
 {
-    if (gpio_get(PIN_BTN) == 0){
-        fire = 0;
-    }
-    else{
-        fire = 1;
-    }
 
+    if (events & GPIO_IRQ_EDGE_RISE) {
+        xSemaphoreGiveFromISR(xSemaphoreFire, 0);
+    }
 }
-
 void fire_task(void *p) {
     stdio_init_all();
 
@@ -58,29 +50,64 @@ void fire_task(void *p) {
         true,
         &gpio_callback);
     gpio_pull_up(PIN_BTN);
-
-    adc_init();
-    adc_gpio_init(PIN_ADC_2);
     gpio_init(PIN_VIB);
     gpio_set_dir(PIN_VIB, GPIO_OUT);
     int shot = 0;
 
     while (1) {
         
-        if(fire){
+        if (xSemaphoreTake(xSemaphoreFire, portMAX_DELAY)) {
             shot = 1;
-            xQueueSend(xQueueFire, &shot, 0);
-            fire =0;
+            send_uart_packet(2, 20);            
             gpio_put(PIN_VIB,1);
             vTaskDelay(pdMS_TO_TICKS(200));
             gpio_put(PIN_VIB,0);
+            
+        }
 
+    }
+}
+
+
+
+
+const int PIN_ADC_2 = 28;
+const float conversion_factor = 5.0f / (1 << 12) ;
+
+uint16_t result;
+float voltage_list[]= {0,0,0,0,0};
+int voltage_counter = 0;
+void recharge_task(void *p){
+    adc_gpio_init(PIN_ADC_2);
+    adc_select_input(2); // Deve ser '2' para GPIO28 (veja observação abaixo)
+
+    while (1) {
+        result = adc_read();
+        float voltage = result * conversion_factor;
+        int recharge_data = 0;
+
+        voltage_list[voltage_counter] = voltage;
+        float average_voltage = moving_average(voltage_list);
+
+        voltage_counter++;
+        if(voltage_counter >= 5){
+            voltage_counter = 0;
+        }
+
+        if(average_voltage >= 0.80){
+            voltage_list[0]= 0;
+            voltage_list[1]= 0;
+            voltage_list[2]= 0;
+            voltage_list[3]= 0;
+            voltage_list[4]= 0;
+
+            recharge_data = 1;
+            send_uart_packet(3, 20);
         }
 
         vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
-
 #define SAMPLE_PERIOD (0.01f) // replace this with actual sample period
 
 const int MPU_ADDRESS = 0x68;
@@ -219,8 +246,6 @@ void send_uart_packet(uint8_t axis, int32_t valor) {
     bytes[1] = (valor >> 8) & 0xFF;
     bytes[2] = valor & 0xFF;
     bytes[3] = 0xFF;
-    // uart_puts(HC06_UART_ID, "OLAAA ");
-
     uart_write_blocking(HC06_UART_ID, bytes, 4);
 }
 
@@ -235,8 +260,9 @@ void uart_task(void *p) {
     gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
     hc06_init("desert_eagle ", "FIRE");
     int shot_data;
-
+    int recharge_data;
     while (1) {
+
         if (xQueueReceive(xQueuePos, &pin_data, portMAX_DELAY)) {
 
             int axis_z = 1;  // Roll
@@ -261,20 +287,22 @@ void uart_task(void *p) {
                 }
             }
         }
-        if (xQueueReceive(xQueueFire, &shot_data, portMAX_DELAY)) {
-            send_uart_packet(2, 1);
-        }
+
+
+        vTaskDelay(pdMS_TO_TICKS(10)); // pequena pausa
 
     }
 }
 int main() {
     stdio_init_all();
     adc_init();
-    xQueueFire = xQueueCreate(32, sizeof(int));
     xQueuePos = xQueueCreate(32, sizeof(data));
+    xSemaphoreFire = xSemaphoreCreateBinary();
+
     xTaskCreate(fire_task, "Fire task", 4095, NULL, 1, NULL);
     xTaskCreate(mpu6050_task, "mpu6050_Task 1", 8192, NULL, 1, NULL);
     xTaskCreate(uart_task, "uart_task", 4095, NULL, 1, NULL);
+    xTaskCreate(recharge_task, "recharge TASK", 4095, NULL, 1, NULL);
 
     vTaskStartScheduler();
 
