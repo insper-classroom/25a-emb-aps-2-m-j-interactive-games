@@ -73,12 +73,11 @@ void recharge_task(void *p) {
     adc_gpio_init(PIN_ADC_2);
     adc_select_input(2);
 
-    uint16_t result;
     float voltage_list[5] = {0};
     int voltage_counter = 0;
 
     while (1) {
-        result = adc_read();
+        uint16_t result = adc_read();
         float voltage = result * conversion_factor;
 
         voltage_list[voltage_counter] = voltage;
@@ -164,8 +163,9 @@ void mpu6050_task(void *p) {
         FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, SAMPLE_PERIOD);
         FusionEuler euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
 
-        if (euler.angle.pitch < -10 && euler.angle.pitch > -8.5f) euler.angle.pitch = 0;
-        if (euler.angle.roll < -3.5f && euler.angle.roll > -1) euler.angle.roll = 0;
+        // Zera pequenos ruídos no pitch e roll
+        if (euler.angle.pitch > -10.0f && euler.angle.pitch < -8.5f) euler.angle.pitch = 0;
+        if (euler.angle.roll > -3.5f && euler.angle.roll < -1.0f) euler.angle.roll = 0;
 
         float d_roll  = fabsf(euler.angle.roll  - v_roll_prev);
         float d_pitch = fabsf(euler.angle.pitch - v_pitch_prev);
