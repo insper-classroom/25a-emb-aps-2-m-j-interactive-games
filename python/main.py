@@ -21,6 +21,26 @@ def move_mouse(axis, value):
         sleep(0.02)
     elif axis == 3:
         pyautogui.rightClick()
+    if axis == 4:  # W
+        if value > 0:
+            pyautogui.keyDown('up')
+        else:
+            pyautogui.keyUp('up')
+    elif axis == 5:  # S
+        if value > 0:
+            pyautogui.keyDown('down')
+        else:
+            pyautogui.keyUp('down')
+    elif axis == 6:  # A
+        if value > 0:
+            pyautogui.keyDown('left')
+        else:
+            pyautogui.keyUp('left')
+    elif axis == 7:  # D
+        if value > 0:
+            pyautogui.keyDown('right')
+        else:
+            pyautogui.keyUp('right')
 
 def controle(ser):
     """

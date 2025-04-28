@@ -1,13 +1,13 @@
 {
     "recommendations": [
-        "ms-vscode.vscode-serial-monitor",
-        "ms-vscode.cpptools-extension-pack",
-        "ms-vscode.cpptools-themes",
-        "wokwi.wokwi-vscode",
-        "raspberry-pi.raspberry-pi-pico",
         "ms-vscode.cpptools",
-        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.vscode-serial-monitor",
+        "wokwi.wokwi-vscode",
         "twxs.cmake",
+        "raspberry-pi.raspberry-pi-pico",
+        "ms-vscode.cpptools-themes",
+        "ms-vscode.cmake-tools",
         "marus25.cortex-debug"
     ]
 }

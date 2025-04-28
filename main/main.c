@@ -20,6 +20,11 @@
 const int PIN_BTN = 2;
 const int PIN_VIB = 17;
 const int PIN_ADC_2 = 28;
+const int PIN_UP     = 14;
+const int PIN_DOWN   = 15;
+const int PIN_LEFT   = 16;
+const int PIN_RIGHT  = 18;
+
 const float conversion_factor = 5.0f / (1 << 12);
 
 SemaphoreHandle_t xSemaphoreFire;
@@ -91,6 +96,38 @@ void recharge_task(void *p) {
         }
 
         vTaskDelay(pdMS_TO_TICKS(200));
+    }
+}
+
+void movement_task(void *p)
+{
+    // inicializa os 4 botões com pull-up
+    int pins[4] = { PIN_UP, PIN_DOWN, PIN_LEFT, PIN_RIGHT };
+    for (int i = 0; i < 4; i = i + 1)
+    {
+        gpio_init(pins[i]);
+        gpio_set_dir(pins[i], GPIO_IN);
+        gpio_pull_up(pins[i]);
+    }
+
+    // estado anterior de cada botão (1 = não-pressionado, 0 = pressionado)
+    int prev[4] = { 1, 1, 1, 1 };
+
+    while (1)
+    {
+        // lê cada botão e envia press/release
+        for (int i = 0; i < 4; i = i + 1)
+        {
+            int curr = gpio_get(pins[i]);
+            if (prev[i] == 1 && curr == 0)
+                send_uart_packet(4 + i, 1);  // pressionou W/S/A/D: eixos 4,5,6,7
+            else if (prev[i] == 0 && curr == 1)
+                send_uart_packet(4 + i, 0);  // soltou
+
+            prev[i] = curr;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
@@ -195,7 +232,7 @@ void mpu6050_task(void *p) {
 #define UART_RX_PIN 1
 
 void send_uart_packet(uint8_t axis, int32_t valor) {
-    if (valor == 0) return;
+    //if (valor == 0) return;
     uint32_t uvalor = (uint32_t) valor;
     uint8_t bytes[4];
     bytes[0] = axis;
@@ -240,6 +277,7 @@ int main() {
     xTaskCreate(mpu6050_task, "MPU6050 task", 8192, NULL, 1, NULL);
     xTaskCreate(uart_task, "UART task", 4096, NULL, 1, NULL);
     xTaskCreate(recharge_task, "Recharge task", 4096, NULL, 1, NULL);
+    xTaskCreate(movement_task, "Move task",    4096, NULL, 1, NULL);
 
     vTaskStartScheduler();
     while (1) {}
