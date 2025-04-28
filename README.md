@@ -109,7 +109,7 @@ flowchart TB
 
 ---
 
-![Proposta](arma.png)
+![Proposta](controle.png)
 
 ---
 
@@ -117,7 +117,7 @@ flowchart TB
 
 ---
 
-![Proposta](img\Controle.jpg)
+![Proposta](CONTROLE.jpg)
 
 ---
 
