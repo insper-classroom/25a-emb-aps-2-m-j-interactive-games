@@ -1,92 +1,107 @@
 # RP2040 FreeRTOS com OLED1
 
-# Controle Customizado para House of the Dead
+# Controle Customizado para DOOM
 
 ## Jogo
 
-**House of the Dead** é um clássico jogo de tiro em trilhos (rail shooter), onde o jogador enfrenta hordas de zumbis em uma narrativa sombria e intensa. Originalmente desenvolvido para arcades, o game é conhecido por seu ritmo acelerado, mira precisa e a adrenalina constante de enfrentar inimigos a cada esquina.
+**Doom** é um dos jogos mais icônicos da história dos videogames, lançado originalmente em 1993. Trata-se de um first-person shooter onde o jogador explora mapas labirínticos, derrota hordas de demônios e sobrevive utilizando uma variedade de armas. O jogo é conhecido por sua ação rápida, atmosfera intensa e forte influência na cultura dos jogos eletrônicos.
 
 ## Ideia do Controle
 
-O controle foi especialmente desenvolvido como uma **arma interativa** para proporcionar uma experiência imersiva em **House of the Dead**. Diferente de um joystick comum, esse controle simula uma pistola com as seguintes características:
+O controle foi especialmente desenvolvido como uma **arma interativa** para proporcionar uma experiência imersiva em **Doom**. Diferente de um joystick comum, este projeto desenvolve um controle customizado para jogar DOOM usando a placa Raspberry Pi Pico com FreeRTOS. O controle combina botões físicos e um sensor de movimento MPU6050 para criar uma interface imersiva::
 
-- **Movimento da arma controla a câmera**: utilizando sensores analógicos para simular os eixos X e Y.
-- **Botão de disparo**: aciona tiros no jogo com resposta imediata.
-- **Motor de vibração**: vibra sempre que o jogador dispara e quando morre, aumentando a imersão.
-- **Botão de Liga/Desliga**: permite ativar ou desativar o controle.
-- **Display OLED**: exibe status do controle, como conexão, munição ou alertas do jogo.
+- **Movimentação (WASD)**: Capturada por botões físicos.
+- **Mira (mouse):**: Controlada pelo sensor de movimento MPU6050 (acelerômetro e giroscópio).
+- **Disparo**: Botão de fogo dedicado.
+- **Interação com o ambiente**:  "Sensor de pressão" detecta ação de movimento ou botão separado.
+- **Conexão Serial Bluetooth (HC-06)**: Comunicação sem fio com o computador para simular teclado e mouse.
 
-Essa abordagem permite ao jogador se sentir parte da ação, como se estivesse com uma arma real nas mãos, interagindo diretamente com o ambiente do jogo.
+Essa abordagem cria uma sensação dinâmica de controle, combinando movimentos físicos e ações rápidas no teclado/mouse, adaptadas para a jogabilidade de DOOM.
 
 ## Inputs e Outputs
 
 ### Entradas (Inputs)
-- **Botão de Liga/Desliga:** Ativa ou desativa o controle.
-- **1 Entrada Digital:** Botão de disparo.
-- **2 Entradas Analógicas:** Leitura dos sensores de movimento nos eixos X e Y, usados para movimentar a mira no jogo.
 
-> As entradas são tratadas com **callbacks e interrupções** para garantir alta responsividade.
+- **Botão de Fogo:** Dispara a arma no jogo.
+- **Botões direcionais** Movimentação do personagem no mapa.
+- **Sensor MPU6050:** Controla o movimento da mira (movimentação do mouse).
+- **Sensor de Pressão:** Detecta o movimento para recarregar (via ADC).
+
+> Todos os botões utilizam **interrupções (IRQ)** combinadas com semáforos no FreeRTOS para máxima responsividade.
 
 ### Saídas (Outputs)
-- **Motor de Vibração:** Ativado em cada disparo para proporcionar feedback tátil.
-- **Display OLED:** Pode exibir o estado da conexão, munição restante, ou alertas do jogo.
-- **LEDs Indicadores:** Sinalizam o status de conexão e funcionamento.
+
+- **Comunicação Bluetooth (HC-06)**: Transmissão dos comandos para o computador.
 
 ## Protocolo Utilizado
 
-- **Bluetooth:** Comunicação sem fio entre a arma e o emulador do jogo.
-- **GPIO Interrupts:** Detecta ações rápidas como o disparo.
-- **RTOS (FreeRTOS):** Utilizado para controlar o fluxo das tasks, filas e semáforos, garantindo performance em tempo real para um jogo de tiro.
+- **Bluetooth Serial (HC-06)**: Envia pacotes de 4 bytes (axis + valor + terminador) para o PC.
+
+- **GPIO Interrupts**: Detectam eventos de botão de forma eficiente.
+
+- **I2C (para MPU6050)**: Comunicação com o sensor de movimento.
+
+- **RTOS (FreeRTOS)**: Gerencia tasks, filas e semáforos para multitarefa em tempo real
 
 ## Diagrama de Blocos do Firmware
 
 ```mermaid
 flowchart TB
-    subgraph Callbacks
-    A[disparo_callback]
-    B[adc_x_callback]
-    C[adc_y_callback]
+    subgraph GPIO Interrupts
+    BTN_FIRE
+    BTN_W
+    BTN_A
+    BTN_S
+    BTN_D
     end
-
-    A --> INPUT_TASK
-    B --> INPUT_TASK
-    C --> INPUT_TASK
 
     subgraph RTOS_Tasks
-    INPUT_TASK -->|xQueueShoot| BT_TASK
-    BT_TASK -->|xQueueFeedback| BUZZ_TASK
-    BT_TASK -->|xSemaphoreBT| LED_TASK
+    FIRE_TASK
+    RECHARGE_TASK
+    MOVEMENT_TASK
+    MPU6050_TASK
+    UART_TASK
     end
 
-    style Callbacks fill:#EFEFEF,stroke:#999,stroke-width:1px
+    BTN_FIRE --> FIRE_TASK
+    BTN_W --> MOVEMENT_TASK
+    BTN_A --> MOVEMENT_TASK
+    BTN_S --> MOVEMENT_TASK
+    BTN_D --> MOVEMENT_TASK
+    MPU6050_TASK --> UART_TASK
+    FIRE_TASK --> UART_TASK
+    MOVEMENT_TASK --> UART_TASK
+    RECHARGE_TASK --> UART_TASK
+
+    style GPIO Interrupts fill:#EFEFEF,stroke:#999,stroke-width:1px
     style RTOS_Tasks fill:#EFEFEF,stroke:#999,stroke-width:1px
-
     classDef task fill:#CCE5FF,stroke:#2F5597,stroke-width:1px
-    classDef callback fill:#FFF2CC,stroke:#D6B656,stroke-width:1px
-
-    class A,B,C callback
-    class INPUT_TASK,BT_TASK,BUZZ_TASK,LED_TASK task
+    classDef irq fill:#FFF2CC,stroke:#D6B656,stroke-width:1px
+    class BTN_FIRE,BTN_W,BTN_A,BTN_S,BTN_D irq
+    class FIRE_TASK,RECHARGE_TASK,MOVEMENT_TASK,MPU6050_TASK,UART_TASK task
 ```
 
 ## Principais Componentes do RTOS
 
 - **Tasks:**
-  - Leitura dos sensores analógicos (movimento da câmera)
-  - Leitura do botão de disparo
-  - Comunicação Bluetooth com o emulador
-  - Controle de vibração ao atirar
-  - Atualização do OLED e LEDs
+  - fire_task: Detecta o disparo e ativa o motor de vibração.
+
+  - movement_task: Trata botões direcionais (WASD).
+
+  - recharge_task: Detecta recarga via sensor.
+
+  - mpu6050_task: Atualiza posição do mouse conforme orientação do controle.
+
+  - uart_task: Envia os pacotes para o computador via Bluetooth.
 
 - **Filas:**
-  - Fila de eventos de entrada
-  - Fila de comandos para o jogo
-  - Fila de feedback de disparo
+  - Fila de envio de pacotes UART (movimento e disparo).
 
 - **Semáforos:**
-  - Gerenciamento do estado da conexão Bluetooth
+  - Gerenciamento de eventos de botão (W, A, S, D e fogo).
 
 - **Interrupts:**
-  - Callbacks para botão de disparo e sensores de movimento
+  - Todos os botões usam interrupções para máxima resposta.
 
 ## Imagens do Controle
 
@@ -98,6 +113,15 @@ flowchart TB
 
 ---
 
+### Imagem Final
+
+---
+
+![Proposta](img\Controle.jpg)
+
+---
+
 ## Considerações Finais
 
-Este projeto propõe um controle inovador para o jogo **House of the Dead**, transformando o gameplay em uma experiência mais física e realista. Com o uso de sensores analógicos para mira, um motor de vibração para disparos e a integração de FreeRTOS, o sistema entrega performance, responsividade e diversão. Ideal para reviver a sensação dos arcades em casa, de forma criativa e tecnológica.
+Este projeto integra **movimentação realista** e **ação rápida** em um controle físico dedicado para jogar **DOOM**.
+Utilizando **FreeRTOS** e o sensor **MPU6050**, o jogador consegue mirar e movimentar seu personagem com fluidez, trazendo uma experiência de gameplay única e imersiva para um dos jogos mais emblemáticos da história.
