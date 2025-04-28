@@ -13,14 +13,17 @@ def move_mouse(axis, value):
     if axis == 0:
         pyautogui.moveRel(value, 0)
     elif axis == 1:
-        pyautogui.moveRel(0, value)
+        pyautogui.moveRel(0, -1 * value)
     elif axis == 2:
         pyautogui.mouseDown()
         sleep(0.05)
         pyautogui.mouseUp()  # does the same thing as a left-button mouse click
         sleep(0.02)
     elif axis == 3:
-        pyautogui.rightClick()
+        pyautogui.keyDown('space')
+        sleep(0.5)
+        pyautogui.keyUp('space')
+
     if axis == 4:  # W
         if value > 0:
             pyautogui.keyDown('up')
